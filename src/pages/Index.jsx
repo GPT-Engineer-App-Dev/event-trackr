@@ -10,6 +10,7 @@ const initialEvents = [
 const Index = () => {
   const [events, setEvents] = useState(initialEvents);
   const [newEvent, setNewEvent] = useState({ title: "", date: "", description: "" });
+  const [editingEvent, setEditingEvent] = useState(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -18,9 +19,19 @@ const Index = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const id = events.length ? events[events.length - 1].id + 1 : 1;
-    setEvents([...events, { ...newEvent, id }]);
+    if (editingEvent) {
+      setEvents(events.map(event => event.id === editingEvent.id ? { ...editingEvent, ...newEvent } : event));
+      setEditingEvent(null);
+    } else {
+      const id = events.length ? events[events.length - 1].id + 1 : 1;
+      setEvents([...events, { ...newEvent, id }]);
+    }
     setNewEvent({ title: "", date: "", description: "" });
+  };
+
+  const handleEdit = (event) => {
+    setEditingEvent(event);
+    setNewEvent({ title: event.title, date: event.date, description: event.description });
   };
 
   return (
@@ -35,9 +46,9 @@ const Index = () => {
           </Flex>
         </Box>
 
-        {/* Create Event Form */}
+        {/* Create/Edit Event Form */}
         <Box as="section" w="100%">
-          <Heading as="h2" size="md" mb={4}>Create New Event</Heading>
+          <Heading as="h2" size="md" mb={4}>{editingEvent ? "Edit Event" : "Create New Event"}</Heading>
           <form onSubmit={handleSubmit}>
             <VStack spacing={4}>
               <FormControl id="title" isRequired>
@@ -52,7 +63,7 @@ const Index = () => {
                 <FormLabel>Description</FormLabel>
                 <Textarea name="description" value={newEvent.description} onChange={handleChange} />
               </FormControl>
-              <Button type="submit" colorScheme="teal">Add Event</Button>
+              <Button type="submit" colorScheme="teal">{editingEvent ? "Update Event" : "Add Event"}</Button>
             </VStack>
           </form>
         </Box>
@@ -66,6 +77,7 @@ const Index = () => {
                 <HStack justify="space-between">
                   <Heading as="h3" size="sm">{event.title}</Heading>
                   <Text>{event.date}</Text>
+                  <Button size="sm" onClick={() => handleEdit(event)}>Edit</Button>
                 </HStack>
                 <Text mt={2}>{event.description}</Text>
               </Box>
