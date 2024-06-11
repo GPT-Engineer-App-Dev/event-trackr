@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Box, Container, Heading, VStack, Text, Flex, Spacer, Button, HStack, Input, Textarea, FormControl, FormLabel } from "@chakra-ui/react";
 
 const initialEvents = [
@@ -11,6 +12,7 @@ const Index = () => {
   const [events, setEvents] = useState(initialEvents);
   const [newEvent, setNewEvent] = useState({ title: "", date: "", description: "" });
   const [editingEvent, setEditingEvent] = useState(null);
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -36,6 +38,10 @@ const Index = () => {
 
   const handleDelete = (id) => {
     setEvents(events.filter(event => event.id !== id));
+  };
+
+  const handleViewDetails = (event) => {
+    navigate(`/event/${event.id}`, { state: { event } });
   };
 
   return (
@@ -79,7 +85,7 @@ const Index = () => {
             {events.map(event => (
               <Box key={event.id} p={4} borderWidth="1px" borderRadius="md" w="100%">
                 <HStack justify="space-between">
-                  <Heading as="h3" size="sm">{event.title}</Heading>
+                  <Heading as="h3" size="sm" onClick={() => handleViewDetails(event)} cursor="pointer">{event.title}</Heading>
                   <Text>{event.date}</Text>
                   <Button size="sm" onClick={() => handleEdit(event)}>Edit</Button>
                   <Button size="sm" colorScheme="red" onClick={() => handleDelete(event.id)}>Delete</Button>
