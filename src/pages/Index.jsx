@@ -34,6 +34,10 @@ const Index = () => {
     setNewEvent({ title: event.title, date: event.date, description: event.description });
   };
 
+  const handleDelete = (id) => {
+    setEvents(events.filter(event => event.id !== id));
+  };
+
   return (
     <Container maxW="container.xl" p={4}>
       <VStack spacing={8}>
@@ -78,6 +82,7 @@ const Index = () => {
                   <Heading as="h3" size="sm">{event.title}</Heading>
                   <Text>{event.date}</Text>
                   <Button size="sm" onClick={() => handleEdit(event)}>Edit</Button>
+                  <Button size="sm" colorScheme="red" onClick={() => handleDelete(event.id)}>Delete</Button>
                 </HStack>
                 <Text mt={2}>{event.description}</Text>
               </Box>
