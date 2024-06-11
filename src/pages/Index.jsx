@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Box, Container, Heading, VStack, Text, Flex, Spacer, Button, HStack, Input, Textarea, FormControl, FormLabel } from "@chakra-ui/react";
 import { useEvents, useAddEvent, useUpdateEvent, useDeleteEvent } from "../integrations/supabase/index.js";
+import { useSupabaseAuth } from "../integrations/supabase/auth.jsx";
 
 const Index = () => {
   const { data: events, isLoading, isError } = useEvents();
@@ -11,6 +12,7 @@ const Index = () => {
   const [newEvent, setNewEvent] = useState({ title: "", date: "", description: "" });
   const [editingEvent, setEditingEvent] = useState(null);
   const navigate = useNavigate();
+  const { session, logout } = useSupabaseAuth();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -57,31 +59,37 @@ const Index = () => {
           <Flex align="center">
             <Heading as="h1" size="lg">Events Management</Heading>
             <Spacer />
-            <Button colorScheme="teal" variant="outline">Login</Button>
+            {session ? (
+              <Button colorScheme="teal" variant="outline" onClick={logout}>Logout</Button>
+            ) : (
+              <Button colorScheme="teal" variant="outline" onClick={() => navigate('/login')}>Login</Button>
+            )}
           </Flex>
         </Box>
 
         {/* Create/Edit Event Form */}
-        <Box as="section" w="100%">
-          <Heading as="h2" size="md" mb={4}>{editingEvent ? "Edit Event" : "Create New Event"}</Heading>
-          <form onSubmit={handleSubmit}>
-            <VStack spacing={4}>
-              <FormControl id="title" isRequired>
-                <FormLabel>Title</FormLabel>
-                <Input name="title" value={newEvent.title} onChange={handleChange} />
-              </FormControl>
-              <FormControl id="date" isRequired>
-                <FormLabel>Date</FormLabel>
-                <Input type="date" name="date" value={newEvent.date} onChange={handleChange} />
-              </FormControl>
-              <FormControl id="description" isRequired>
-                <FormLabel>Description</FormLabel>
-                <Textarea name="description" value={newEvent.description} onChange={handleChange} />
-              </FormControl>
-              <Button type="submit" colorScheme="teal">{editingEvent ? "Update Event" : "Add Event"}</Button>
-            </VStack>
-          </form>
-        </Box>
+        {session && (
+          <Box as="section" w="100%">
+            <Heading as="h2" size="md" mb={4}>{editingEvent ? "Edit Event" : "Create New Event"}</Heading>
+            <form onSubmit={handleSubmit}>
+              <VStack spacing={4}>
+                <FormControl id="title" isRequired>
+                  <FormLabel>Title</FormLabel>
+                  <Input name="title" value={newEvent.title} onChange={handleChange} />
+                </FormControl>
+                <FormControl id="date" isRequired>
+                  <FormLabel>Date</FormLabel>
+                  <Input type="date" name="date" value={newEvent.date} onChange={handleChange} />
+                </FormControl>
+                <FormControl id="description" isRequired>
+                  <FormLabel>Description</FormLabel>
+                  <Textarea name="description" value={newEvent.description} onChange={handleChange} />
+                </FormControl>
+                <Button type="submit" colorScheme="teal">{editingEvent ? "Update Event" : "Add Event"}</Button>
+              </VStack>
+            </form>
+          </Box>
+        )}
 
         {/* Events List */}
         <Box as="section" w="100%">
@@ -92,8 +100,12 @@ const Index = () => {
                 <HStack justify="space-between">
                   <Heading as="h3" size="sm" onClick={() => handleViewDetails(event)} cursor="pointer">{event.name}</Heading>
                   <Text>{event.date}</Text>
-                  <Button size="sm" onClick={() => handleEdit(event)}>Edit</Button>
-                  <Button size="sm" colorScheme="red" onClick={() => handleDelete(event.id)}>Delete</Button>
+                  {session && (
+                    <>
+                      <Button size="sm" onClick={() => handleEdit(event)}>Edit</Button>
+                      <Button size="sm" colorScheme="red" onClick={() => handleDelete(event.id)}>Delete</Button>
+                    </>
+                  )}
                 </HStack>
                 <Text mt={2}>{event.description}</Text>
               </Box>

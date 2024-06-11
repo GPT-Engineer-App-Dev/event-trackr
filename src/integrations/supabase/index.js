@@ -42,6 +42,12 @@ Comments // table: comments
     content: string
     event_id: number // foreign key to Events
 
+Users // table: users
+    id: number
+    created_at: string
+    email: string
+    role: string
+
 */
 
 // Hooks for Jobs table
@@ -151,6 +157,43 @@ export const useDeleteComment = () => {
         mutationFn: (id) => fromSupabase(supabase.from('comments').delete().eq('id', id)),
         onSuccess: () => {
             queryClient.invalidateQueries('comments');
+        },
+    });
+};
+
+// Hooks for Users table
+export const useUsers = () => useQuery({
+    queryKey: ['users'],
+    queryFn: () => fromSupabase(supabase.from('users').select('*')),
+});
+export const useUser = (id) => useQuery({
+    queryKey: ['users', id],
+    queryFn: () => fromSupabase(supabase.from('users').select('*').eq('id', id).single()),
+});
+export const useAddUser = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (newUser) => fromSupabase(supabase.from('users').insert([newUser])),
+        onSuccess: () => {
+            queryClient.invalidateQueries('users');
+        },
+    });
+};
+export const useUpdateUser = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (updatedUser) => fromSupabase(supabase.from('users').update(updatedUser).eq('id', updatedUser.id)),
+        onSuccess: () => {
+            queryClient.invalidateQueries('users');
+        },
+    });
+};
+export const useDeleteUser = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (id) => fromSupabase(supabase.from('users').delete().eq('id', id)),
+        onSuccess: () => {
+            queryClient.invalidateQueries('users');
         },
     });
 };
