@@ -1,15 +1,13 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Box, Container, Heading, VStack, Text, Flex, Spacer, Button, HStack, Input, Textarea, FormControl, FormLabel } from "@chakra-ui/react";
-
-const initialEvents = [
-  { id: 1, title: "Event One", date: "2023-10-01", description: "Description for event one." },
-  { id: 2, title: "Event Two", date: "2023-10-05", description: "Description for event two." },
-  { id: 3, title: "Event Three", date: "2023-10-10", description: "Description for event three." },
-];
+import { useEvents, useAddEvent, useUpdateEvent, useDeleteEvent } from "../integrations/supabase/index.js";
 
 const Index = () => {
-  const [events, setEvents] = useState(initialEvents);
+  const { data: events, isLoading, isError } = useEvents();
+  const addEvent = useAddEvent();
+  const updateEvent = useUpdateEvent();
+  const deleteEvent = useDeleteEvent();
   const [newEvent, setNewEvent] = useState({ title: "", date: "", description: "" });
   const [editingEvent, setEditingEvent] = useState(null);
   const navigate = useNavigate();
@@ -19,14 +17,13 @@ const Index = () => {
     setNewEvent({ ...newEvent, [name]: value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (editingEvent) {
-      setEvents(events.map(event => event.id === editingEvent.id ? { ...editingEvent, ...newEvent } : event));
+      await updateEvent.mutateAsync({ ...editingEvent, ...newEvent });
       setEditingEvent(null);
     } else {
-      const id = events.length ? events[events.length - 1].id + 1 : 1;
-      setEvents([...events, { ...newEvent, id }]);
+      await addEvent.mutateAsync(newEvent);
     }
     setNewEvent({ title: "", date: "", description: "" });
   };
@@ -36,13 +33,21 @@ const Index = () => {
     setNewEvent({ title: event.title, date: event.date, description: event.description });
   };
 
-  const handleDelete = (id) => {
-    setEvents(events.filter(event => event.id !== id));
+  const handleDelete = async (id) => {
+    await deleteEvent.mutateAsync(id);
   };
 
   const handleViewDetails = (event) => {
     navigate(`/event/${event.id}`, { state: { event } });
   };
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (isError) {
+    return <div>Error loading events</div>;
+  }
 
   return (
     <Container maxW="container.xl" p={4}>
@@ -85,7 +90,7 @@ const Index = () => {
             {events.map(event => (
               <Box key={event.id} p={4} borderWidth="1px" borderRadius="md" w="100%">
                 <HStack justify="space-between">
-                  <Heading as="h3" size="sm" onClick={() => handleViewDetails(event)} cursor="pointer">{event.title}</Heading>
+                  <Heading as="h3" size="sm" onClick={() => handleViewDetails(event)} cursor="pointer">{event.name}</Heading>
                   <Text>{event.date}</Text>
                   <Button size="sm" onClick={() => handleEdit(event)}>Edit</Button>
                   <Button size="sm" colorScheme="red" onClick={() => handleDelete(event.id)}>Delete</Button>
