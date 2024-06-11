@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useSupabaseAuth } from "../integrations/supabase/auth.jsx";
 import { Box, Container, Heading, VStack, Text, Flex, Spacer, Button, HStack, Input, Textarea, FormControl, FormLabel } from "@chakra-ui/react";
 import { useJobs, useAddJob, useUpdateJob, useDeleteJob } from "../integrations/supabase/index.js";
@@ -11,6 +12,7 @@ const Jobs = () => {
   const [newJob, setNewJob] = useState({ jobs_title: "", job_type: "", job_area: "" });
   const [editingJob, setEditingJob] = useState(null);
   const { session, logout } = useSupabaseAuth();
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -34,7 +36,9 @@ const Jobs = () => {
   };
 
   const handleDelete = async (id) => {
-    await deleteJob.mutateAsync(id);
+    if (window.confirm("Are you sure you want to delete this job?")) {
+      await deleteJob.mutateAsync(id);
+    }
   };
 
   if (isLoading) {
@@ -92,8 +96,12 @@ const Jobs = () => {
                     <HStack justify="space-between">
                       <Heading as="h3" size="sm">{job.jobs_title}</Heading>
                       <Text>{job.job_type}</Text>
-                      <Button size="sm" onClick={() => handleEdit(job)}>Edit</Button>
-                      <Button size="sm" colorScheme="red" onClick={() => handleDelete(job.id)}>Delete</Button>
+                      {session && (
+                        <Button size="sm" onClick={() => handleEdit(job)}>Edit</Button>
+                      )}
+                      {session && (
+                        <Button size="sm" colorScheme="red" onClick={() => handleDelete(job.id)}>Delete</Button>
+                      )}
                     </HStack>
                     <Text mt={2}>{job.job_area}</Text>
                   </Box>
